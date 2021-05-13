@@ -32,6 +32,7 @@
             (create-lockfiles . nil)
             (debug-on-error . t)
             (init-file-debug . t)
+            (inhibit-splash-screen . t)
             (frame-resize-pixelwise . t)
             (enable-recursive-minibuffers . t)
             (history-length . 1000)
