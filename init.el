@@ -139,22 +139,6 @@
   :custom
   (yas-snippet-dirs . '("~/.emacs.d/yasnippets")))
 
-
-(leaf fringe-helper
-  :ensure t
-  :commands fringe-helper-define)
-
-(leaf git-gutter
-  :ensure t
-  :config
-  (fringe-helper-define 'git-gutter-fr:added '(center repeated)
-    "XXXX....")
-  (fringe-helper-define 'git-gutter-fr:modified '(center repeated)
-    "XXXX....")
-  (fringe-helper-define 'git-gutter-fr:deleted '(center repeated)
-    "XXXX....")
-  (global-git-gutter-mode +1))
-
 (leaf treemacs
   :ensure t
   :defer-config
@@ -170,8 +154,9 @@
    (treemacs-git-mode 'simple)))
   :config
   (leaf treemacs-evil
-    :after treemacs evil
-    :ensure t))
+    :after evil
+    :ensure t
+    :require t))
 
 (leaf company
   :ensure t
@@ -246,6 +231,26 @@
     (kbd ", g g")   'xref-find-definitions
     (kbd ", g r")   'xref-find-references
     (kbd ", g b")   'xref-pop-marker-stack))
+
+(leaf *git
+  :config
+  (leaf fringe-helper
+    :ensure t
+    :commands fringe-helper-define)
+  (leaf git-gutter
+    :ensure t
+    :config
+    (global-git-gutter-mode +1)
+    (leaf git-gutter-fringe
+      :ensure t
+      :require t
+      :config
+      (fringe-helper-define 'git-gutter-fr:added '(center repeated)
+        "XXXX....")
+      (fringe-helper-define 'git-gutter-fr:modified '(center repeated)
+        "XXXX....")
+      (fringe-helper-define 'git-gutter-fr:deleted '(center repeated)
+        "XXXX...."))))
 
 (leaf *lang
   :config
