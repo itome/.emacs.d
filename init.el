@@ -173,36 +173,6 @@
   (define-key company-active-map [return] 'company-complete-selection)
   (define-key company-active-map (kbd "RET") 'company-complete-selection))
 
-(leaf lsp-mode
-  :ensure t
-  :init
-  (setq gc-cons-threshold 100000000
-        lsp-idle-delay 0.500
-        read-process-output-max (* 3 1024 1024))
-  :commands lsp
-  :hook
-  (go-mode-hook . lsp)
-  (typescript-tsx-mode-hook . lsp)
-  :custom
-  (lsp-headerline-breadcrumb-enable . nil)
-  :config
-  (leaf lsp-ui
-    :ensure t
-    :hook ((lsp-mode-hook . lsp-ui-mode))
-    :custom
-    ((lsp-ui-doc-enable            . t)
-     (lsp-ui-doc-include-signature . t)
-     (lsp-ui-flycheck-enable       . nil)
-     (lsp-ui-peek-enable           . t)
-     (lsp-ui-sideline-show-diagnostics . t)
-     (lsp-ui-sideline-show-hover . t)
-     (lsp-ui-sideline-show-code-actions . t)
-     (lsp-ui-sideline-delay . 1))
-    :config
-    (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-    (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-    (evil-define-key 'normal 'lsp-mode-map (kbd ", g b") #'lsp-ui-peek-jump-backward)))
-
 (leaf evil
   :ensure t
   :preface
@@ -254,11 +224,46 @@
 
 (leaf *lang
   :config
+  (leaf lsp-mode
+    :ensure t
+    :init
+    (setq gc-cons-threshold 100000000
+          lsp-idle-delay 0.500
+          read-process-output-max (* 3 1024 1024))
+    :commands lsp
+    :hook
+    (go-mode-hook . lsp)
+    (typescript-tsx-mode-hook . lsp)
+    (dart-mode-hook . lsp)
+    :custom
+    (lsp-headerline-breadcrumb-enable . nil)
+    :config
+    (leaf lsp-ui
+      :ensure t
+      :hook ((lsp-mode-hook . lsp-ui-mode))
+      :custom
+      ((lsp-ui-doc-enable            . t)
+       (lsp-ui-doc-include-signature . t)
+       (lsp-ui-flycheck-enable       . nil)
+       (lsp-ui-peek-enable           . t)
+       (lsp-ui-sideline-show-diagnostics . t)
+       (lsp-ui-sideline-show-hover . t)
+       (lsp-ui-sideline-show-code-actions . t)
+       (lsp-ui-sideline-delay . 1))
+      :config
+      (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+      (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+      (evil-define-key 'normal 'lsp-mode-map (kbd ", g b") #'lsp-ui-peek-jump-backward)))
+
   (leaf *go
     :config
     (leaf go-mode
       :ensure t
       :leaf-defer t))
+  (leaf *dart
+    :config
+    (leaf lsp-dart
+      :ensure t))
   (leaf *typescript
     :config
     (leaf web-mode
