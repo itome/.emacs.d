@@ -30,7 +30,9 @@
             (user-mail-address . "dev@itome.team")
             (user-login-name . "itome")
             (create-lockfiles . nil)
-            (debug-on-error . t)
+            (truncate-lines . t)
+            (truncate-partial-width-windows . t)
+            (debug-on-error . nil)
             (init-file-debug . t)
             (inhibit-splash-screen . t)
             (frame-resize-pixelwise . t)
@@ -59,6 +61,10 @@
 
 (leaf maximize-screen
   :config (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
+
+(leaf font
+  :config
+  (add-to-list 'default-frame-alist '(font . "JetBrains Mono")))
 
 (leaf electric
   :config (electric-pair-mode 1))
@@ -93,7 +99,9 @@
 
   (leaf doom-modeline
     :ensure t
-    :hook (after-init-hook doom-modeline-mode))
+    :hook (after-init-hook doom-modeline-mode)
+    :custom
+    (doom-modeline-lsp . t))
 
   (leaf all-the-icons
     :ensure t))
@@ -101,8 +109,12 @@
 (leaf ivy
   :ensure t
   :leaf-defer nil
-  :custom ((ivy-initial-inputs-alist . nil)
-           (ivy-use-selectable-prompt . t))
+  :custom
+  (ivy-initial-inputs-alist . nil)
+  (ivy-use-selectable-prompt . t)
+  (ivy-re-builders-alist . '((swiper     . ivy--regex-plus)
+                             (counsel-rg . ivy--regex-plus)
+                             (t          . ivy--regex-fuzzy)))
   :global-minor-mode t
   :config
   (define-key ivy-minibuffer-map [escape] 'minibuffer-keyboard-quit)
@@ -115,8 +127,7 @@
     :ensure t
     :custom
     (ivy-posframe-parameters . '((left-fringe . 8) (right-fringe . 8)))
-    (ivy-posframe-display-functions-alist . '(
-                                              (swiper          . ivy-display-function-fallback)
+    (ivy-posframe-display-functions-alist . '((swiper          . ivy-display-function-fallback)
                                               (counsel-rg      . ivy-display-function-fallback)
                                               (t               . ivy-posframe-display)))
     :config
@@ -129,7 +140,11 @@
   (exec-path-from-shell-initialize)))
 
 (leaf undo-tree
-  :ensure t)
+  :ensure t
+  :after evil
+  :config
+  (global-undo-tree-mode)
+  (evil-define-key 'normal 'global (kbd "SPC a u") #'undo-tree-redo))
 
 (leaf projectile
   :ensure t)
@@ -144,15 +159,15 @@
   :ensure t
   :defer-config
   (treemacs-filewatch-mode t)
+  (treemacs-follow-mode -1)
+  (treemacs-git-mode -1)
   (treemacs-fringe-indicator-mode 'always)
   (treemacs-resize-icons 44)
   (add-hook 'treemacs-mode-hook (lambda() (display-line-numbers-mode -1)))
-  (pcase (cons (not (null (executable-find "git")))
-             (not (null treemacs-python-executable)))
-  (`(t . t)
-   (treemacs-git-mode 'deferred))
-  (`(t . _)
-   (treemacs-git-mode 'simple)))
+  (evil-define-key 'treemacs treemacs-mode-map (kbd "pd") #'treemacs-remove-project-from-workspace)
+  (evil-define-key 'treemacs treemacs-mode-map (kbd "pa") #'treemacs-add-project-to-workspace)
+  (evil-define-key 'treemacs treemacs-mode-map (kbd "cf") #'treemacs-create-file)
+  (evil-define-key 'treemacs treemacs-mode-map (kbd "cd") #'treemacs-create-dir)
   :config
   (leaf treemacs-evil
     :after evil
@@ -174,6 +189,9 @@
   (define-key company-active-map [return] 'company-complete-selection)
   (define-key company-active-map (kbd "RET") 'company-complete-selection))
 
+(leaf flycheck
+  :ensure t)
+
 (leaf evil
   :ensure t
   :preface
@@ -181,22 +199,25 @@
   (setq evil-want-keybinding nil)
   :config
   (evil-mode 1)
+  (evil-set-undo-system 'undo-tree)
   (evil-define-key 'motion 'global
     (kbd "SPC") nil
     (kbd ",") nil)
   (evil-define-key '(normal motion) 'global
+    (kbd "SPC p f") 'projectile-find-file
     (kbd "SPC SPC") 'counsel-M-x
     (kbd "/")       'swiper
     (kbd "SPC /")   'counsel-rg
     (kbd "SPC f s") 'save-buffer
     (kbd "SPC f f") 'find-file
     (kbd "SPC f t") 'treemacs-select-window
-    (kbd "SPC b b") 'counsel-buffer-or-recentf
+    (kbd "SPC b b") 'counsel-ibuffer
     (kbd "SPC TAB") 'previous-buffer
-    (kbd "SPC w l") 'windmove-right
-    (kbd "SPC w h") 'windmove-left
-    (kbd "SPC w j") 'windmove-down
-    (kbd "SPC w k") 'windmove-up
+    (kbd "SPC w w") 'evil-window-next
+    (kbd "SPC w l") 'evil-window-right
+    (kbd "SPC w h") 'evil-window-left
+    (kbd "SPC w j") 'evil-window-down
+    (kbd "SPC w k") 'evil-window-up
     (kbd "SPC w /") 'split-window-horizontally
     (kbd "SPC w -") 'split-window-vertically
     (kbd ", g g")   'xref-find-definitions
@@ -236,16 +257,24 @@
     (go-mode-hook . lsp)
     (typescript-tsx-mode-hook . lsp)
     (dart-mode-hook . lsp)
+    (before-save-hook . #'lsp-format-buffer)
     :custom
     (lsp-headerline-breadcrumb-enable . nil)
+    (lsp-eldoc-hook . nil)
     :config
+    (evil-define-key 'normal 'lsp-mode-map
+      (kbd ", a a") 'lsp-execute-code-action
+      (kbd ", = =") 'lsp-format-buffer
+      (kbd ", = r") 'lsp-format-region
+      (kbd ", r r") 'lsp-rename
+      (kbd ", r o") 'lsp-organize-imports)
     (leaf lsp-ui
       :ensure t
       :hook ((lsp-mode-hook . lsp-ui-mode))
       :custom
       ((lsp-ui-doc-enable            . t)
        (lsp-ui-doc-include-signature . t)
-       (lsp-ui-flycheck-enable       . nil)
+       (lsp-ui-flycheck-enable       . t)
        (lsp-ui-peek-enable           . t)
        (lsp-ui-sideline-show-diagnostics . t)
        (lsp-ui-sideline-show-hover . t)
@@ -282,7 +311,6 @@
       (add-to-list 'auto-mode-alist '("\\.jsx\\'" . typescript-tsx-mode)))
     (leaf prettier-js
       :ensure t
-      :hook
-      (typescript-tsx-mode . prettier-js-mode)
-      :config
-      (evil-define-key 'normal 'typescript-tsx-mode (kbd ", = =") #'prettier-js))))
+      :after web-mode
+      :hook ((typescript-tsx-mode-hook . prettier-js-mode))
+      :defer-config (evil-define-key 'normal 'typescript-tsx-mode-map (kbd ", = =") #'prettier-js))))
