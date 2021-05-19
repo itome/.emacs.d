@@ -264,8 +264,6 @@
     :config
     (evil-define-key 'normal 'lsp-mode-map
       (kbd ", a a") 'lsp-execute-code-action
-      (kbd ", = =") 'lsp-format-buffer
-      (kbd ", = r") 'lsp-format-region
       (kbd ", r r") 'lsp-rename
       (kbd ", r o") 'lsp-organize-imports)
     (leaf lsp-ui
