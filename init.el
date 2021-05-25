@@ -29,6 +29,7 @@
   :custom '((user-full-name . "Takeshi Tsukamoto")
             (user-mail-address . "dev@itome.team")
             (user-login-name . "itome")
+            (frame-title-format . '("%f"))
             (create-lockfiles . nil)
             (truncate-lines . t)
             (truncate-partial-width-windows . t)
@@ -123,6 +124,12 @@
   (leaf counsel
     :ensure t
     :global-minor-mode t)
+  (leaf all-the-icons-ivy-rich
+    :ensure t
+    :init (all-the-icons-ivy-rich-mode 1))
+  (leaf ivy-rich
+    :ensure t
+    :init (ivy-rich-mode 1))
   (leaf ivy-posframe
     :ensure t
     :custom
@@ -188,6 +195,9 @@
   (define-key company-active-map (kbd "C-k") 'company-select-previous)
   (define-key company-active-map [return] 'company-complete-selection)
   (define-key company-active-map (kbd "RET") 'company-complete-selection))
+
+(leaf vterm
+  :ensure t)
 
 (leaf flycheck
   :ensure t)
@@ -264,6 +274,8 @@
     :config
     (evil-define-key 'normal 'lsp-mode-map
       (kbd ", a a") 'lsp-execute-code-action
+      (kbd ", g t") 'lsp-find-type-definition
+      (kbd ", g i") 'lsp-goto-implementation
       (kbd ", r r") 'lsp-rename
       (kbd ", r o") 'lsp-organize-imports)
     (leaf lsp-ui
@@ -310,5 +322,4 @@
     (leaf prettier-js
       :ensure t
       :after web-mode
-      :hook ((typescript-tsx-mode-hook . prettier-js-mode))
-      :defer-config (evil-define-key 'normal 'typescript-tsx-mode-map (kbd ", = =") #'prettier-js))))
+      :hook ((typescript-tsx-mode-hook . prettier-js-mode)))))
