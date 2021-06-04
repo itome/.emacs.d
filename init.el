@@ -200,7 +200,17 @@
   :ensure t)
 
 (leaf flycheck
-  :ensure t)
+  :ensure t
+  :defer-config
+  (defun toggle-flycheck-error-list ()
+    "Toggle flycheck's error list window.
+    If the error list is visible, hide it.  Otherwise, show it."
+    (interactive)
+    (-if-let (window (flycheck-get-error-list-window))
+        (quit-window nil window)
+      (flycheck-list-errors)))
+  (evil-define-key '(normal) 'global
+    (kbd "SPC e l" 'toggle-flycheck-error-list)))
 
 (leaf *evil
   :config
@@ -235,7 +245,6 @@
       (kbd ", g g")   'xref-find-definitions
       (kbd ", g r")   'xref-find-references
       (kbd ", g b")   'xref-pop-marker-stack))
-
   (leaf evil-surround
     :ensure t
     :config (global-evil-surround-mode 1)))
