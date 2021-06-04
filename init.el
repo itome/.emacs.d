@@ -202,37 +202,43 @@
 (leaf flycheck
   :ensure t)
 
-(leaf evil
-  :ensure t
-  :preface
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
+(leaf *evil
   :config
-  (evil-mode 1)
-  (evil-set-undo-system 'undo-tree)
-  (evil-define-key 'motion 'global
-    (kbd "SPC") nil
-    (kbd ",") nil)
-  (evil-define-key '(normal motion) 'global
-    (kbd "SPC p f") 'projectile-find-file
-    (kbd "SPC SPC") 'counsel-M-x
-    (kbd "/")       'swiper
-    (kbd "SPC /")   'counsel-rg
-    (kbd "SPC f s") 'save-buffer
-    (kbd "SPC f f") 'find-file
-    (kbd "SPC f t") 'treemacs-select-window
-    (kbd "SPC b b") 'counsel-ibuffer
-    (kbd "SPC TAB") 'previous-buffer
-    (kbd "SPC w w") 'evil-window-next
-    (kbd "SPC w l") 'evil-window-right
-    (kbd "SPC w h") 'evil-window-left
-    (kbd "SPC w j") 'evil-window-down
-    (kbd "SPC w k") 'evil-window-up
-    (kbd "SPC w /") 'split-window-horizontally
-    (kbd "SPC w -") 'split-window-vertically
-    (kbd ", g g")   'xref-find-definitions
-    (kbd ", g r")   'xref-find-references
-    (kbd ", g b")   'xref-pop-marker-stack))
+  (leaf evil
+    :ensure t
+    :preface
+    (setq evil-want-integration t)
+    (setq evil-want-keybinding nil)
+    :config
+    (evil-mode 1)
+    (evil-set-undo-system 'undo-tree)
+    (evil-define-key 'motion 'global
+      (kbd "SPC") nil
+      (kbd ",") nil)
+    (evil-define-key '(normal motion) 'global
+      (kbd "SPC p f") 'projectile-find-file
+      (kbd "SPC SPC") 'counsel-M-x
+      (kbd "/")       'swiper
+      (kbd "SPC /")   'counsel-rg
+      (kbd "SPC f s") 'save-buffer
+      (kbd "SPC f f") 'find-file
+      (kbd "SPC f t") 'treemacs-select-window
+      (kbd "SPC b b") 'counsel-ibuffer
+      (kbd "SPC TAB") 'previous-buffer
+      (kbd "SPC w w") 'evil-window-next
+      (kbd "SPC w l") 'evil-window-right
+      (kbd "SPC w h") 'evil-window-left
+      (kbd "SPC w j") 'evil-window-down
+      (kbd "SPC w k") 'evil-window-up
+      (kbd "SPC w /") 'split-window-horizontally
+      (kbd "SPC w -") 'split-window-vertically
+      (kbd ", g g")   'xref-find-definitions
+      (kbd ", g r")   'xref-find-references
+      (kbd ", g b")   'xref-pop-marker-stack))
+
+  (leaf evil-surround
+    :ensure t
+    :config (global-evil-surround-mode 1)))
 
 (leaf *git
   :config
@@ -241,8 +247,7 @@
     :commands fringe-helper-define)
   (leaf git-gutter
     :ensure t
-    :config
-    (global-git-gutter-mode +1)
+    :config (global-git-gutter-mode +1)
     (leaf git-gutter-fringe
       :ensure t
       :require t
@@ -267,7 +272,7 @@
     (go-mode-hook . lsp)
     (typescript-tsx-mode-hook . lsp)
     (dart-mode-hook . lsp)
-    (before-save-hook . #'lsp-format-buffer)
+    (rust-mode-hook . lsp)
     :custom
     (lsp-headerline-breadcrumb-enable . nil)
     (lsp-eldoc-hook . nil)
@@ -275,7 +280,7 @@
     (evil-define-key 'normal 'lsp-mode-map
       (kbd ", a a") 'lsp-execute-code-action
       (kbd ", g t") 'lsp-find-type-definition
-      (kbd ", g i") 'lsp-goto-implementation
+      (kbd ", g i") 'lsp-ui-peek-find-implementation
       (kbd ", r r") 'lsp-rename
       (kbd ", r o") 'lsp-organize-imports)
     (leaf lsp-ui
@@ -299,10 +304,16 @@
     :config
     (leaf go-mode
       :ensure t
-      :leaf-defer t))
+      :hook (before-save-hook . #'lsp-format-buffer)))
+  (leaf :rust
+    :config
+    (leaf rust-mode
+      :ensure t
+      :custom (rust-format-on-save . t)))
   (leaf *dart
     :config
     (leaf lsp-dart
+      :hook (before-save-hook . #'lsp-format-buffer)
       :ensure t))
   (leaf *typescript
     :config
