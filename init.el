@@ -196,12 +196,10 @@
   (define-key company-active-map [return] 'company-complete-selection)
   (define-key company-active-map (kbd "RET") 'company-complete-selection))
 
-(leaf vterm
-  :ensure t)
-
 (leaf flycheck
   :ensure t
-  :defer-config
+  :after evil
+  :config
   (defun toggle-flycheck-error-list ()
     "Toggle flycheck's error list window.
     If the error list is visible, hide it.  Otherwise, show it."
@@ -210,7 +208,7 @@
         (quit-window nil window)
       (flycheck-list-errors)))
   (evil-define-key '(normal) 'global
-    (kbd "SPC e l" 'toggle-flycheck-error-list)))
+    (kbd "SPC e l") 'toggle-flycheck-error-list))
 
 (leaf *evil
   :config
@@ -278,10 +276,16 @@
           read-process-output-max (* 3 1024 1024))
     :commands lsp
     :hook
-    (go-mode-hook . lsp)
-    (typescript-tsx-mode-hook . lsp)
-    (dart-mode-hook . lsp)
-    (rust-mode-hook . lsp)
+    ((
+      go-mode-hook
+      typescript-tsx-mode-hook
+      dart-mode-hook
+      rust-mode-hook
+      ) . lsp)
+    ((
+      go-mode-hook
+      dart-mode-hook
+      ) . (lambda () (add-hook 'before-save-hook #'lsp-format-buffer t t)))
     :custom
     (lsp-headerline-breadcrumb-enable . nil)
     (lsp-eldoc-hook . nil)
@@ -312,8 +316,7 @@
   (leaf *go
     :config
     (leaf go-mode
-      :ensure t
-      :hook (before-save-hook . #'lsp-format-buffer)))
+      :ensure t))
   (leaf :rust
     :config
     (leaf rust-mode
@@ -321,9 +324,10 @@
       :custom (rust-format-on-save . t)))
   (leaf *dart
     :config
-    (leaf lsp-dart
-      :hook (before-save-hook . #'lsp-format-buffer)
-      :ensure t))
+    (leaf dart-mode
+      :ensure t
+      :config
+      (leaf lsp-dart :ensure t)))
   (leaf *typescript
     :config
     (leaf web-mode
