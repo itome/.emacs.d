@@ -130,6 +130,15 @@
   (leaf ivy-rich
     :ensure t
     :init (ivy-rich-mode 1))
+  (leaf prescient
+    :ensure t
+    :custom ((prescient-aggressive-file-save . t))
+    :global-minor-mode prescient-persist-mode)
+  (leaf ivy-prescient
+    :ensure t
+    :after prescient ivy
+    :custom ((ivy-prescient-retain-classic-highlighting . t))
+    :global-minor-mode t)
   (leaf ivy-posframe
     :ensure t
     :custom
@@ -223,6 +232,9 @@
     (evil-define-key 'motion 'global
       (kbd "SPC") nil
       (kbd ",") nil)
+    (defun alternate-buffer ()
+      (interactive)
+      (switch-to-buffer (car (evil-alternate-buffer))))
     (evil-define-key '(normal motion) 'global
       (kbd "SPC p f") 'projectile-find-file
       (kbd "SPC SPC") 'counsel-M-x
@@ -232,12 +244,14 @@
       (kbd "SPC f f") 'find-file
       (kbd "SPC f t") 'treemacs-select-window
       (kbd "SPC b b") 'counsel-ibuffer
-      (kbd "SPC TAB") 'previous-buffer
+      (kbd "SPC TAB") 'alternate-buffer
       (kbd "SPC w w") 'evil-window-next
+      (kbd "SPC w b") 'evil-window-prev
       (kbd "SPC w l") 'evil-window-right
       (kbd "SPC w h") 'evil-window-left
       (kbd "SPC w j") 'evil-window-down
       (kbd "SPC w k") 'evil-window-up
+      (kbd "SPC w d") 'evil-window-delete
       (kbd "SPC w /") 'split-window-horizontally
       (kbd "SPC w -") 'split-window-vertically
       (kbd ", g g")   'xref-find-definitions
@@ -281,6 +295,8 @@
       typescript-tsx-mode-hook
       dart-mode-hook
       rust-mode-hook
+      c++-mode-hook
+      swift-mode-hook
       ) . lsp)
     ((
       go-mode-hook
@@ -328,6 +344,25 @@
       :ensure t
       :config
       (leaf lsp-dart :ensure t)))
+  (leaf *swift
+    :config
+    (leaf swift-mode
+      :ensure t
+      :config
+      (leaf lsp-sourcekit
+        :ensure t
+        :config
+        (setq
+         lsp-sourcekit-executable  (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))
+         lsp-sourcekit-extra-args  '(
+                                     "-Xswiftc"
+                                     "-sdk"
+                                     "-Xswiftc"
+                                     "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk"
+                                     "-Xswiftc"
+                                     "-target"
+                                     "-Xswiftc"
+                                     "x86_64-apple-ios13.6-simulator")))))
   (leaf *typescript
     :config
     (leaf web-mode
