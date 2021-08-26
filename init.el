@@ -162,6 +162,10 @@
   (global-undo-tree-mode)
   (evil-define-key 'normal 'global (kbd "SPC a u") #'undo-tree-redo))
 
+(leaf undo-fu
+  :ensure t
+  :after evil)
+
 (leaf projectile
   :ensure t)
 
@@ -228,7 +232,7 @@
     (setq evil-want-keybinding nil)
     :config
     (evil-mode 1)
-    (evil-set-undo-system 'undo-tree)
+    (evil-set-undo-system 'undo-fu)
     (evil-define-key 'motion 'global
       (kbd "SPC") nil
       (kbd ",") nil)
@@ -297,6 +301,7 @@
       rust-mode-hook
       c++-mode-hook
       swift-mode-hook
+      clojure-mode-hook
       ) . lsp)
     ((
       go-mode-hook
@@ -363,6 +368,21 @@
                                      "-target"
                                      "-Xswiftc"
                                      "x86_64-apple-ios13.6-simulator")))))
+  (leaf *clojure
+    :config
+    (leaf clojure-mode
+      :ensure t))
+  (leaf *racket
+    :config
+    (leaf racket-mode
+      :ensure t
+      :config
+      (add-hook 'racket-mode-hook 'company-mode)
+      (add-hook 'company-mode-hook
+           '(lambda ()
+              (when (and (equal major-mode 'racket-mode)
+                         (bound-and-true-p company-quickhelp-mode))
+                (company-quickhelp-mode -1))) t)))
   (leaf *typescript
     :config
     (leaf web-mode
